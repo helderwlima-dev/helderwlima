@@ -4,6 +4,8 @@ import { Aluno, TipoVinculo } from '../types';
 import { prettyVinculoName, getVinculoColor, getISODate } from '../lib/utils';
 import { Screen } from '../App';
 import UploadIcon from '../components/icons/UploadIcon';
+import TrashIcon from '../components/icons/TrashIcon';
+import PasswordConfirmationModal from '../components/PasswordConfirmationModal';
 
 const CancellationModal = ({ aluno, onConfirm, onCancel }: { aluno: Aluno, onConfirm: (alunoId: string, dataFim: string, motivo: string) => void, onCancel: () => void }) => {
     const [dataFim, setDataFim] = useState(getISODate(new Date()));
@@ -129,9 +131,10 @@ const AlunoForm = ({ aluno, onSave, onCancel, onInitiateCancel }: { aluno: Aluno
 };
 
 const AlunosScreen = ({ setActiveScreen }: { setActiveScreen: (screen: Screen) => void; }) => {
-    const { alunos, addAluno, updateAluno } = useData();
+    const { alunos, addAluno, updateAluno, deleteAllAlunos } = useData();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [editingAluno, setEditingAluno] = useState<Aluno | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     
@@ -184,6 +187,21 @@ const AlunosScreen = ({ setActiveScreen }: { setActiveScreen: (screen: Screen) =
         setEditingAluno(null);
     }
 
+    const handleDeleteAll = () => {
+        setIsDeleteModalOpen(true);
+    }
+
+    const handleConfirmDeleteAll = (password: string) => {
+        const SENHA_EXCLUSAO = 'apagar2024';
+        if (password.trim() === SENHA_EXCLUSAO) {
+            deleteAllAlunos();
+            alert("Todos os alunos foram apagados com sucesso.");
+        } else {
+            alert("Senha incorreta. A operação foi cancelada.");
+        }
+        setIsDeleteModalOpen(false);
+    };
+
     const filteredAlunos = useMemo(() => {
         return alunos.filter(a => a.nome.toLowerCase().includes(searchTerm.toLowerCase()));
     }, [alunos, searchTerm]);
@@ -193,6 +211,9 @@ const AlunosScreen = ({ setActiveScreen }: { setActiveScreen: (screen: Screen) =
             <header className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold">Gerenciar Alunos</h1>
                 <div className="flex space-x-2">
+                    <button onClick={handleDeleteAll} className="p-2 bg-red-50 text-brand-red rounded-lg shadow-sm hover:bg-red-100 transition" title="Limpar Alunos">
+                       <TrashIcon className="w-5 h-5" />
+                    </button>
                     <button onClick={() => setActiveScreen('importar')} className="p-2 bg-slate-100 text-slate-600 rounded-lg shadow-sm hover:bg-slate-200 transition">
                        <UploadIcon className="w-5 h-5" />
                     </button>
@@ -236,6 +257,14 @@ const AlunosScreen = ({ setActiveScreen }: { setActiveScreen: (screen: Screen) =
                     aluno={editingAluno}
                     onConfirm={handleConfirmCancellation}
                     onCancel={() => setIsCancelModalOpen(false)}
+                />
+            )}
+             {isDeleteModalOpen && (
+                <PasswordConfirmationModal 
+                    title="Confirmar Exclusão Total"
+                    message="Esta ação é irreversível e apagará TODOS os alunos. Para continuar, digite a senha de exclusão abaixo."
+                    onConfirm={handleConfirmDeleteAll} 
+                    onCancel={() => setIsDeleteModalOpen(false)} 
                 />
             )}
         </div>

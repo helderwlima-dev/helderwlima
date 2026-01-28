@@ -14,22 +14,15 @@ interface DataContextType {
   invalidateCheckin: (checkinId: string, motivo: string) => void;
   updateCheckinVinculo: (checkinId: string, newVinculo: TipoVinculo, motivo: string) => void;
   addAlunosBatch: (alunos: Omit<Aluno, 'id'>[]) => void;
+  deleteAllAlunos: () => void;
+  deleteAllCheckins: () => void;
 }
 
 export const DataContext = createContext<DataContextType | undefined>(undefined);
 
-const initialAlunos: Aluno[] = [
-    { id: '1', nome: 'Ana Clara Silva', turma: 'Turma A', tipo_vinculo: TipoVinculo.CONTRATO_MENSAL, data_inicio_vinculo: '2024-01-01', data_fim_vinculo: null, observacao: ''},
-    { id: '2', nome: 'Bernardo Costa', turma: 'Turma B', tipo_vinculo: TipoVinculo.CONTRATO_MENSAL, data_inicio_vinculo: '2024-01-01', data_fim_vinculo: null, observacao: ''},
-    { id: '3', nome: 'Carlos Eduardo Pereira', turma: 'Turma A', tipo_vinculo: TipoVinculo.DIARIA, data_inicio_vinculo: null, data_fim_vinculo: null, observacao: 'Pai paga por dia'},
-    { id: '4', nome: 'Daniela Ferreira', turma: 'Turma C', tipo_vinculo: TipoVinculo.OBSERVACAO, data_inicio_vinculo: null, data_fim_vinculo: null, observacao: 'Aguardando confirmação'},
-];
+const initialAlunos: Aluno[] = [];
 
-const initialCheckins: Checkin[] = [
-    { id: 'c1', alunoId: '1', data_checkin: getISODate(new Date()), hora_checkin: '10:30:00', tipo_refeicao: TipoRefeicao.ALMOCO, tipo_vinculo_no_checkin: TipoVinculo.CONTRATO_MENSAL, valido: true, motivo_correcao: '' },
-    { id: 'c2', alunoId: '1', data_checkin: getISODate(new Date()), hora_checkin: '09:00:00', tipo_refeicao: TipoRefeicao.LANCHE_MANHA, tipo_vinculo_no_checkin: TipoVinculo.CONTRATO_MENSAL, valido: true, motivo_correcao: '' },
-    { id: 'c3', alunoId: '1', data_checkin: getISODate(new Date()), hora_checkin: '15:00:00', tipo_refeicao: TipoRefeicao.LANCHE_TARDE, tipo_vinculo_no_checkin: TipoVinculo.CONTRATO_MENSAL, valido: true, motivo_correcao: '' },
-];
+const initialCheckins: Checkin[] = [];
 
 
 // FIX: Changed props definition to use React.PropsWithChildren to fix incorrect 'children' prop missing error.
@@ -49,6 +42,14 @@ export const DataProvider = ({ children }: React.PropsWithChildren) => {
   const addAlunosBatch = (newAlunos: Omit<Aluno, 'id'>[]) => {
     const withIds = newAlunos.map(a => ({...a, id: crypto.randomUUID()}));
     setAlunos(prev => [...prev, ...withIds]);
+  };
+
+  const deleteAllAlunos = () => {
+    setAlunos([]);
+  };
+
+  const deleteAllCheckins = () => {
+    setCheckins([]);
   };
 
   const addAutorizacao = (auth: Omit<AutorizacaoDiaria, 'id'>) => {
@@ -83,7 +84,7 @@ export const DataProvider = ({ children }: React.PropsWithChildren) => {
   };
 
   return (
-    <DataContext.Provider value={{ alunos, autorizacoes, checkins, addAluno, updateAluno, addAutorizacao, deleteAutorizacao, addCheckin, invalidateCheckin, addAlunosBatch, updateCheckinVinculo }}>
+    <DataContext.Provider value={{ alunos, autorizacoes, checkins, addAluno, updateAluno, addAutorizacao, deleteAutorizacao, addCheckin, invalidateCheckin, addAlunosBatch, updateCheckinVinculo, deleteAllAlunos, deleteAllCheckins }}>
       {children}
     </DataContext.Provider>
   );

@@ -3,6 +3,8 @@ import { useData } from '../hooks/useData';
 import { getISODate, prettyRefeicaoName, prettyVinculoName, getVinculoColor } from '../lib/utils';
 import { Checkin, TipoVinculo } from '../types';
 import DownloadIcon from '../components/icons/DownloadIcon';
+import TrashIcon from '../components/icons/TrashIcon';
+import PasswordConfirmationModal from '../components/PasswordConfirmationModal';
 
 const InvalidateModal = ({ checkin, onConfirm, onCancel }: { checkin: Checkin, onConfirm: (id: string, motivo: string) => void, onCancel: () => void }) => {
     const [motivo, setMotivo] = useState('');
@@ -66,11 +68,12 @@ const EditCheckinVinculoModal = ({ checkin, onConfirm, onCancel }: { checkin: Ch
 };
 
 const CheckinsHistoryScreen = () => {
-    const { checkins, alunos, invalidateCheckin, updateCheckinVinculo } = useData();
+    const { checkins, alunos, invalidateCheckin, updateCheckinVinculo, deleteAllCheckins } = useData();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [showInvalidateModal, setShowInvalidateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedCheckin, setSelectedCheckin] = useState<Checkin | null>(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
     const isoDate = getISODate(currentDate);
     const checkinsDoDia = checkins.filter(c => c.data_checkin === isoDate).sort((a,b) => b.hora_checkin.localeCompare(a.hora_checkin));
@@ -103,6 +106,17 @@ const CheckinsHistoryScreen = () => {
         updateCheckinVinculo(id, newVinculo, motivo);
         setShowEditModal(false);
         setSelectedCheckin(null);
+    };
+
+    const handleConfirmDeleteAllCheckins = (password: string) => {
+        const SENHA_EXCLUSAO = 'apagarcheckin2024';
+        if (password.trim() === SENHA_EXCLUSAO) {
+            deleteAllCheckins();
+            alert("Todos os registros de check-in foram apagados com sucesso.");
+        } else {
+            alert("Senha incorreta. A operação foi cancelada.");
+        }
+        setIsDeleteModalOpen(false);
     };
 
     const downloadCSV = (csvContent: string, filename: string) => {
@@ -141,9 +155,14 @@ const CheckinsHistoryScreen = () => {
         <div className="space-y-4">
             <header className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold">Histórico de Check-ins</h1>
-                 <button onClick={handleExportCSV} className="p-2 bg-slate-100 text-slate-600 rounded-lg shadow-sm hover:bg-slate-200 transition">
-                    <DownloadIcon className="w-5 h-5" />
-                </button>
+                <div className="flex items-center space-x-2">
+                    <button onClick={() => setIsDeleteModalOpen(true)} className="p-2 bg-red-50 text-brand-red rounded-lg shadow-sm hover:bg-red-100 transition" title="Limpar Histórico de Check-ins">
+                       <TrashIcon className="w-5 h-5" />
+                    </button>
+                    <button onClick={handleExportCSV} className="p-2 bg-slate-100 text-slate-600 rounded-lg shadow-sm hover:bg-slate-200 transition">
+                        <DownloadIcon className="w-5 h-5" />
+                    </button>
+                </div>
             </header>
             
             <div className="flex justify-between items-center bg-slate-100 p-2 rounded-lg">
@@ -208,6 +227,14 @@ const CheckinsHistoryScreen = () => {
                     checkin={selectedCheckin}
                     onConfirm={handleConfirmEditVinculo}
                     onCancel={() => setShowEditModal(false)}
+                />
+            )}
+            {isDeleteModalOpen && (
+                <PasswordConfirmationModal 
+                    title="Limpar Histórico de Check-ins"
+                    message="Esta ação apagará TODOS os registros de check-in de forma irreversível. Digite a senha para confirmar."
+                    onConfirm={handleConfirmDeleteAllCheckins} 
+                    onCancel={() => setIsDeleteModalOpen(false)} 
                 />
             )}
         </div>
