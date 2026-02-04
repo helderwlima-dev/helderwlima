@@ -1,5 +1,5 @@
 {
-  "name": "Check-in Refeições",
+  "name": "Check-in Refeições Centro",
   "description": "A system for managing student check-ins at the school restaurant, tracking meals by contract type (monthly, daily, observation) and generating reports.",
   "requestFramePermissions": []
 }
